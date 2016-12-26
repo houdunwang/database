@@ -25,8 +25,8 @@ $config = [
 	'prefix'      => ''
 ];
 \houdunwang\config\Config::set( 'database', $config );
-$res = \houdunwang\schema\Schema::getFields('news');
-\houdunwang\schema\Schema::create( 'ab', function ( \houdunwang\schema\build\Blueprint $table ) {
+$res = \houdunwang\database\Schema::getFields('news');
+\houdunwang\database\Schema::create( 'aba', function ( \houdunwang\database\build\Blueprint $table ) {
 	$table->increments( 'id' );
 	$table->string( 'title', 100 );
 	$table->tinyInteger( 'nums' )->unsigned();

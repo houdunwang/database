@@ -25,7 +25,7 @@ class Base {
 	//连接
 	protected $driver;
 	public function __construct() {
-		$class = '\houdunwang\schema\build\\' . ucfirst( Config::get( 'database.driver' ) );
+		$class = '\houdunwang\database\build\\' . ucfirst( Config::get( 'database.driver' ) );
 
 		$this->driver = new $class();
 	}
