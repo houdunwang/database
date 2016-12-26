@@ -12,6 +12,9 @@ composer require houdunwang/database
 > HDPHP 框架已经内置此组件，无需要安装
 
 ##开始使用
+####配置
+本组件使用了 [Db组件](https://github.com/houdunwang/db) 需要先进行配置, 请查看 [GitHub文档](https://github.com/houdunwang/db) 进行配置
+
 ####获取表字段信息
 获取user表的所有字段
 ```
