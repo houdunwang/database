@@ -103,10 +103,11 @@ class Mysql {
 	 *
 	 * @return int
 	 */
-	public function getDataBaseSize( $database ) {
-		$sql  = "show table status from " . $database;
-		$data = Db::query( $sql );
-		$size = 0;
+	public function getDataBaseSize( $database = '' ) {
+		$database = $database ?: Config::get( 'database.database' );
+		$sql      = "show table status from " . $database;
+		$data     = Db::query( $sql );
+		$size     = 0;
 		foreach ( $data as $v ) {
 			$size += $v['Data_length'] + $v['Data_length'] + $v['Index_length'];
 		}
@@ -176,9 +177,10 @@ class Mysql {
 	 *
 	 * @return array
 	 */
-	public function getAllTableInfo( $database ) {
-		$info = Db::query( "SHOW TABLE STATUS FROM " . $database );
-		$arr  = [ ];
+	public function getAllTableInfo( $database = '' ) {
+		$database = $database ?: Config::get( 'database.database' );
+		$info     = Db::query( "SHOW TABLE STATUS FROM " . $database );
+		$arr      = [ ];
 		foreach ( (array) $info as $k => $t ) {
 			$arr['table'][ $t['Name'] ]['tablename'] = $t['Name'];
 			$arr['table'][ $t['Name'] ]['engine']    = $t['Engine'];
