@@ -8,15 +8,13 @@
  * | Copyright (c) 2012-2019, www.hdphp.com. All Rights Reserved.
  * '-------------------------------------------------------------------*/
 namespace houdunwang\database;
-
-
-use hdphp\kernel\ServiceProvider;
+use houdunwang\framework\build\Provider;
 
 /**
  * Class SchemaProvider
  * @package hdphp\db
  */
-class SchemaProvider extends ServiceProvider {
+class SchemaProvider extends Provider {
 	//延迟加载
 	public $defer = true;
 
