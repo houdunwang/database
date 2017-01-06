@@ -7,25 +7,12 @@
  * |    WeChat: aihoudun
  * | Copyright (c) 2012-2019, www.hdphp.com. All Rights Reserved.
  * '-------------------------------------------------------------------*/
-namespace houdunwang\database;
-
-use houdunwang\framework\build\Provider;
+namespace houdunwang\database\build;
 
 /**
- * Class SchemaProvider
- * @package hdphp\db
+ * 数据填充基类
+ * Class Seeder
+ * @package hdphp\database
  */
-class SchemaProvider extends Provider {
-	//延迟加载
-	public $defer = true;
-
-	public function boot() {
-
-	}
-
-	public function register() {
-		$this->app->single( 'Schema', function () {
-			return new Schema();
-		} );
-	}
+abstract class Seeder {
 }

@@ -74,6 +74,28 @@ class Blueprint {
 
 	}
 
+	//添加字段
+	public function add() {
+		$sql = 'ALTER TABLE ' . $this->table . " ADD ";
+		foreach ( $this->instruction as $n ) {
+			if ( isset( $n['unsigned'] ) ) {
+				$n['sql'] .= " unsigned ";
+			}
+			if ( ! isset( $n['null'] ) ) {
+				$n['sql'] .= ' NOT NULL';
+			}
+			if ( isset( $n['default'] ) ) {
+				$n['sql'] .= " DEFAULT " . $n['default'];
+			}
+			if ( isset( $n['comment'] ) ) {
+				$n['sql'] .= " COMMENT '{$n['comment']}'";
+			}
+			$s = $sql . $n['sql'];
+			Db::execute( $s );
+		}
+
+	}
+
 	public function increments( $field ) {
 		$this->instruction[]['sql'] = $field . " INT PRIMARY KEY AUTO_INCREMENT ";
 
