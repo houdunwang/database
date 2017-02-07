@@ -125,6 +125,12 @@ class Blueprint {
 		return $this;
 	}
 
+	public function mediumint( $field ) {
+		$this->instruction[]['sql'] = $field . " MEDIUMINT ";
+
+		return $this;
+	}
+
 	public function decimal( $field, $len, $de ) {
 		$this->instruction[]['sql'] = $field . " decimal($len,$de) ";
 
@@ -157,6 +163,12 @@ class Blueprint {
 
 	public function text( $field ) {
 		$this->instruction[]['sql'] = $field . " TEXT ";
+
+		return $this;
+	}
+
+	public function mediumtext( $field ) {
+		$this->instruction[]['sql'] = $field . " MEDIUMTEXT ";
 
 		return $this;
 	}
