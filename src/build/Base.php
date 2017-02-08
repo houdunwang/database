@@ -24,6 +24,7 @@ class Base {
 	protected $exe;
 	//连接
 	protected $driver;
+
 	public function __construct() {
 		$class = '\houdunwang\database\build\\' . ucfirst( Config::get( 'database.driver' ) );
 
@@ -35,8 +36,13 @@ class Base {
 	 *
 	 * @param string $table 表名
 	 * @param \Closure $callback
+	 *
+	 * @return bool
 	 */
 	public function create( $table, Closure $callback ) {
+		if ( Schema::tableExists( $table ) ) {
+			return true;
+		}
 		$Blueprint = new Blueprint( $table );
 		$callback( $Blueprint );
 		$Blueprint->create();
