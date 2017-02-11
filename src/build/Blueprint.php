@@ -120,7 +120,13 @@ class Blueprint {
 	}
 
 	public function integer( $field ) {
-		$this->instruction[]['sql'] = $field . " int ";
+		$this->instruction[]['sql'] = $field . " INT ";
+
+		return $this;
+	}
+
+	public function smallint( $field ) {
+		$this->instruction[]['sql'] = $field . " SMALLINT ";
 
 		return $this;
 	}

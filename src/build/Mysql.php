@@ -75,6 +75,22 @@ class Mysql {
 	}
 
 	/**
+	 * 删除表字段
+	 *
+	 * @param $table 表名
+	 * @param $field 字段名
+	 *
+	 * @return bool
+	 */
+	public function dropField( $table, $field ) {
+		if ( $this->fieldExists( $field, $table ) ) {
+			return Db::execute( "ALTER TABLE " . Config::get( 'database.prefix' ) . $table . ' DROP COLUMN ' . $field );
+		}
+
+		return true;
+	}
+
+	/**
 	 * 修复数据表
 	 *
 	 * @param $table
