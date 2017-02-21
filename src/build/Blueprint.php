@@ -22,10 +22,17 @@ class Blueprint {
 	//字段结构语句
 	protected $instruction = [ ];
 
+	//不加前缀的表
+	protected $noPreTable;
+
 	//数据表
 	protected $table;
 
+	//添加或修改的字段
+	protected $field;
+
 	public function __construct( $table ) {
+		$this->noPreTable = $table;
 		$this->table = Config::get( 'database.prefix' ) . $table;
 	}
 
@@ -76,27 +83,29 @@ class Blueprint {
 
 	//添加字段
 	public function add() {
-		$sql = 'ALTER TABLE ' . $this->table . " ADD ";
-		foreach ( $this->instruction as $n ) {
-			if ( isset( $n['unsigned'] ) ) {
-				$n['sql'] .= " unsigned ";
+		if(!Schema::fieldExists($this->field,$this->noPreTable)){
+			$sql = 'ALTER TABLE ' . $this->table . " ADD ";
+			foreach ( $this->instruction as $n ) {
+				if ( isset( $n['unsigned'] ) ) {
+					$n['sql'] .= " unsigned ";
+				}
+				if ( ! isset( $n['null'] ) ) {
+					$n['sql'] .= ' NOT NULL';
+				}
+				if ( isset( $n['default'] ) ) {
+					$n['sql'] .= " DEFAULT " . $n['default'];
+				}
+				if ( isset( $n['comment'] ) ) {
+					$n['sql'] .= " COMMENT '{$n['comment']}'";
+				}
+				$s = $sql . $n['sql'];
+				Db::execute( $s );
 			}
-			if ( ! isset( $n['null'] ) ) {
-				$n['sql'] .= ' NOT NULL';
-			}
-			if ( isset( $n['default'] ) ) {
-				$n['sql'] .= " DEFAULT " . $n['default'];
-			}
-			if ( isset( $n['comment'] ) ) {
-				$n['sql'] .= " COMMENT '{$n['comment']}'";
-			}
-			$s = $sql . $n['sql'];
-			Db::execute( $s );
 		}
-
 	}
 
 	public function increments( $field ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " INT PRIMARY KEY AUTO_INCREMENT ";
 
 		return $this;
@@ -108,72 +117,84 @@ class Blueprint {
 	}
 
 	public function tinyInteger( $field ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " tinyint ";
 
 		return $this;
 	}
 
 	public function enum( $field, $data ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " enum('" . implode( "','", $data ) . "') ";
 
 		return $this;
 	}
 
 	public function integer( $field ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " INT ";
 
 		return $this;
 	}
 
 	public function smallint( $field ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " SMALLINT ";
 
 		return $this;
 	}
 
 	public function mediumint( $field ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " MEDIUMINT ";
 
 		return $this;
 	}
 
 	public function decimal( $field, $len, $de ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " decimal($len,$de) ";
 
 		return $this;
 	}
 
 	public function float( $field, $len, $de ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " float($len,$de) ";
 
 		return $this;
 	}
 
 	public function double( $field, $len, $de ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " double($len,$de) ";
 
 		return $this;
 	}
 
 	public function char( $field, $len = 255 ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " char($len) ";
 
 		return $this;
 	}
 
 	public function string( $field, $len = 255 ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " VARCHAR($len) ";
 
 		return $this;
 	}
 
 	public function text( $field ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " TEXT ";
 
 		return $this;
 	}
 
 	public function mediumtext( $field ) {
+		$this->field = $field;
 		$this->instruction[]['sql'] = $field . " MEDIUMTEXT ";
 
 		return $this;
