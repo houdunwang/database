@@ -20,7 +20,7 @@ use houdunwang\db\Db;
  */
 class Blueprint {
 	//字段结构语句
-	protected $instruction = [ ];
+	protected $instruction = [];
 
 	//不加前缀的表
 	protected $noPreTable;
@@ -33,13 +33,13 @@ class Blueprint {
 
 	public function __construct( $table ) {
 		$this->noPreTable = $table;
-		$this->table = Config::get( 'database.prefix' ) . $table;
+		$this->table      = Config::get( 'database.prefix' ) . $table;
 	}
 
 	//新建表
 	public function create() {
 		$sql         = "CREATE TABLE " . $this->table . '(';
-		$instruction = [ ];
+		$instruction = [];
 		foreach ( $this->instruction as $n ) {
 			if ( isset( $n['unsigned'] ) ) {
 				$n['sql'] .= " unsigned ";
@@ -83,7 +83,7 @@ class Blueprint {
 
 	//添加字段
 	public function add() {
-		if(!Schema::fieldExists($this->field,$this->noPreTable)){
+		if ( ! Schema::fieldExists( $this->field, $this->noPreTable ) ) {
 			$sql = 'ALTER TABLE ' . $this->table . " ADD ";
 			foreach ( $this->instruction as $n ) {
 				if ( isset( $n['unsigned'] ) ) {
@@ -105,7 +105,7 @@ class Blueprint {
 	}
 
 	public function increments( $field ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " INT PRIMARY KEY AUTO_INCREMENT ";
 
 		return $this;
@@ -117,84 +117,84 @@ class Blueprint {
 	}
 
 	public function tinyInteger( $field ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " tinyint ";
 
 		return $this;
 	}
 
 	public function enum( $field, $data ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " enum('" . implode( "','", $data ) . "') ";
 
 		return $this;
 	}
 
 	public function integer( $field ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " INT ";
 
 		return $this;
 	}
 
 	public function smallint( $field ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " SMALLINT ";
 
 		return $this;
 	}
 
 	public function mediumint( $field ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " MEDIUMINT ";
 
 		return $this;
 	}
 
 	public function decimal( $field, $len, $de ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " decimal($len,$de) ";
 
 		return $this;
 	}
 
 	public function float( $field, $len, $de ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " float($len,$de) ";
 
 		return $this;
 	}
 
 	public function double( $field, $len, $de ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " double($len,$de) ";
 
 		return $this;
 	}
 
 	public function char( $field, $len = 255 ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " char($len) ";
 
 		return $this;
 	}
 
 	public function string( $field, $len = 255 ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " VARCHAR($len) ";
 
 		return $this;
 	}
 
 	public function text( $field ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " TEXT ";
 
 		return $this;
 	}
 
 	public function mediumtext( $field ) {
-		$this->field = $field;
+		$this->field                = $field;
 		$this->instruction[]['sql'] = $field . " MEDIUMTEXT ";
 
 		return $this;
@@ -222,5 +222,15 @@ class Blueprint {
 		$this->instruction[ count( $this->instruction ) - 1 ]['unsigned'] = true;
 
 		return $this;
+	}
+
+	/**
+	 * 删除字段
+	 *
+	 * @param $field
+	 */
+	public function dropField( $field ) {
+		$sql = "ALTER TABLE " . $this->table . " DROP " . $field;
+		Db::execute( $sql );
 	}
 }
