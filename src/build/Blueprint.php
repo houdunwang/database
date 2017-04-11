@@ -31,9 +31,33 @@ class Blueprint {
 	//添加或修改的字段
 	protected $field;
 
-	public function __construct( $table ) {
-		$this->noPreTable = $table;
-		$this->table      = Config::get( 'database.prefix' ) . $table;
+	//表注释
+	protected $tableComment = '';
+
+	public function __construct( $table, $comment = '' ) {
+		$this->noPreTable   = $table;
+		$this->table        = Config::get( 'database.prefix' ) . $table;
+		$this->tableComment = $comment;
+	}
+
+	/**
+	 * 添加索引
+	 *
+	 * @param $field 字段
+	 */
+	public function index( $field ) {
+		$sql = "ALTER TABLE `{$this->table}` ADD INDEX {$field} ( `{$field}` )";
+		Db::execute( $sql );
+	}
+
+	/**
+	 * 添加唯一索引
+	 *
+	 * @param $field 字段
+	 */
+	public function unique( $field ) {
+		$sql = "ALTER TABLE `{$this->table}` ADD UNIQUE ( `{$field}` )";
+		Db::execute( $sql );
 	}
 
 	//新建表
@@ -55,7 +79,7 @@ class Blueprint {
 			}
 			$instruction[] = $n['sql'];
 		}
-		$sql .= implode( ',', $instruction ) . ')CHARSET UTF8';
+		$sql .= implode( ',', $instruction ) . ") CHARSET UTF8  COMMENT='{$this->tableComment}'";
 		Db::execute( $sql );
 	}
 
@@ -78,14 +102,13 @@ class Blueprint {
 			$s = $sql . $n['sql'];
 			Db::execute( $s );
 		}
-
 	}
 
 	//添加字段
 	public function add() {
-		if ( ! Schema::fieldExists( $this->field, $this->noPreTable ) ) {
-			$sql = 'ALTER TABLE ' . $this->table . " ADD ";
-			foreach ( $this->instruction as $n ) {
+		$sql = 'ALTER TABLE ' . $this->table . " ADD ";
+		foreach ( $this->instruction as $n ) {
+			if ( ! Schema::fieldExists( $n['field'], $this->noPreTable ) ) {
 				if ( isset( $n['unsigned'] ) ) {
 					$n['sql'] .= " unsigned ";
 				}
@@ -105,20 +128,32 @@ class Blueprint {
 	}
 
 	public function increments( $field ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " INT PRIMARY KEY AUTO_INCREMENT ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " INT PRIMARY KEY AUTO_INCREMENT "
+		];
 
 		return $this;
 	}
 
 	public function timestamps() {
-		$this->instruction[]['sql'] = "created_at INT(10) ";
-		$this->instruction[]['sql'] = "updated_at INT(10) ";
+		$this->instruction[] = [
+			'field' => 'created_at',
+			'sql'   => " created_at datetime COMMENT '创建时间' "
+		];
+		$this->instruction[] = [
+			'field' => 'updated_at',
+			'sql'   => " updated_at datetime COMMENT '更新时间'"
+		];
 	}
 
 	public function tinyInteger( $field ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " tinyint ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " TINYINT "
+		];
 
 		return $this;
 	}
@@ -137,65 +172,106 @@ class Blueprint {
 		return $this;
 	}
 
-	public function smallint( $field ) {
+	public function datetime( $field ) {
 		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " SMALLINT ";
+		$this->instruction[]['sql'] = $field . " DATETIME ";
+
+		return $this;
+	}
+
+	public function date( $field ) {
+		$this->field                = $field;
+		$this->instruction[]['sql'] = $field . " DATE ";
+
+		return $this;
+	}
+
+	public function smallint( $field ) {
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " SMALLINT "
+		];
 
 		return $this;
 	}
 
 	public function mediumint( $field ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " MEDIUMINT ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " MEDIUMINT "
+		];
 
 		return $this;
 	}
 
 	public function decimal( $field, $len, $de ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " decimal($len,$de) ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " decimal($len,$de) "
+		];
 
 		return $this;
 	}
 
 	public function float( $field, $len, $de ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " float($len,$de) ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " float($len,$de) "
+		];
 
 		return $this;
 	}
 
 	public function double( $field, $len, $de ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " double($len,$de) ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " double($len,$de) "
+		];
 
 		return $this;
 	}
 
 	public function char( $field, $len = 255 ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " char($len) ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " char($len) "
+		];
 
 		return $this;
 	}
 
 	public function string( $field, $len = 255 ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " VARCHAR($len) ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " VARCHAR($len) "
+		];
 
 		return $this;
 	}
 
 	public function text( $field ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " TEXT ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " TEXT "
+		];
 
 		return $this;
 	}
 
 	public function mediumtext( $field ) {
-		$this->field                = $field;
-		$this->instruction[]['sql'] = $field . " MEDIUMTEXT ";
+		$this->field         = $field;
+		$this->instruction[] = [
+			'field' => $field,
+			'sql'   => $field . " MEDIUMTEXT "
+		];
 
 		return $this;
 	}
@@ -230,7 +306,9 @@ class Blueprint {
 	 * @param $field
 	 */
 	public function dropField( $field ) {
-		$sql = "ALTER TABLE " . $this->table . " DROP " . $field;
-		Db::execute( $sql );
+		if ( Schema::fieldExists( $field, $this->noPreTable ) ) {
+			$sql = "ALTER TABLE " . $this->table . " DROP " . $field;
+			Db::execute( $sql );
+		}
 	}
 }

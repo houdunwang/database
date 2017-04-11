@@ -7,6 +7,7 @@
  * |    WeChat: aihoudun
  * | Copyright (c) 2012-2019, www.hdphp.com. All Rights Reserved.
  * '-------------------------------------------------------------------*/
+
 namespace houdunwang\database\build;
 
 /**
@@ -32,18 +33,18 @@ class Base {
 	}
 
 	/**
-	 * 创建表结构
-	 *
+	 * 创建表
 	 * @param string $table 表名
-	 * @param \Closure $callback
+	 * @param Closure $callback
+	 * @param string $comment 表注释
 	 *
 	 * @return bool
 	 */
-	public function create( $table, Closure $callback ) {
+	public function create( $table, Closure $callback, $comment = '' ) {
 		if ( Schema::tableExists( $table ) ) {
 			return true;
 		}
-		$Blueprint = new Blueprint( $table );
+		$Blueprint = new Blueprint( $table, $comment );
 		$callback( $Blueprint );
 		$Blueprint->create();
 	}

@@ -30,9 +30,9 @@ class Mysql {
 	public function getFields( $table ) {
 		$sql = "show columns from " . Config::get( 'database.prefix' ) . $table;
 		if ( ! $result = Db::query( $sql ) ) {
-			return [ ];
+			return [];
 		}
-		$data = [ ];
+		$data = [];
 		foreach ( (array) $result as $res ) {
 			$f ['field']             = $res ['Field'];
 			$f ['type']              = $res ['Type'];
@@ -71,7 +71,9 @@ class Mysql {
 	 * @return mixed
 	 */
 	public function drop( $table ) {
-		return Db::execute( "DROP TABLE " . Config::get( 'database.prefix' ) . $table );
+		if ( $this->tableExists( $table ) ) {
+			return Db::execute( "DROP TABLE " . Config::get( 'database.prefix' ) . $table );
+		}
 	}
 
 	/**
@@ -196,7 +198,7 @@ class Mysql {
 	public function getAllTableInfo( $database = '' ) {
 		$database = $database ?: Config::get( 'database.database' );
 		$info     = Db::query( "SHOW TABLE STATUS FROM " . $database );
-		$arr      = [ ];
+		$arr      = [];
 		foreach ( (array) $info as $k => $t ) {
 			$arr['table'][ $t['Name'] ]['tablename'] = $t['Name'];
 			$arr['table'][ $t['Name'] ]['engine']    = $t['Engine'];
