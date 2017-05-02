@@ -110,7 +110,8 @@ class Blueprint
                 $n['sql'] .= " COMMENT '{$n['comment']}'";
             }
             $s = $sql.$n['sql'];
-            Db::execute($s);
+
+            return Db::execute($s);
         }
     }
 
@@ -133,7 +134,8 @@ class Blueprint
                     $n['sql'] .= " COMMENT '{$n['comment']}'";
                 }
                 $s = $sql.$n['sql'];
-                Db::execute($s);
+
+                return Db::execute($s);
             }
         }
     }
