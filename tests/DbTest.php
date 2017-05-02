@@ -11,6 +11,7 @@
 namespace tests;
 
 
+use houdunwang\database\build\Blueprint;
 use houdunwang\database\Schema;
 
 class DbTest extends Migrate
@@ -96,5 +97,22 @@ class DbTest extends Migrate
 	) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COMMENT='回复规则';
 EOF;
         $this->assertTrue(Schema::sql($sql));
+    }
+
+    public function testMigrate()
+    {
+        $d = Schema::create(
+            'users2',
+            function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('title', 100);
+                $table->tinyInteger('nums')->unsigned();
+                $table->char('name', 30)->nullable()->defaults('后盾网')->comment(
+                    '这是注释'
+                );
+                $table->timestamps();
+            }
+        );
+        $this->assertTrue($d);
     }
 }
