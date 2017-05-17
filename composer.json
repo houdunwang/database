@@ -1,7 +1,6 @@
 {
   "name": "houdunwang/database",
   "description": "数据库组件用于完成数据库、表、记录的管理",
-  "type": "project",
   "keywords": [
     "houdunwang",
     "hdphp",
