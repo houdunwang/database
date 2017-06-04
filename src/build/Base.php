@@ -31,9 +31,7 @@ class Base
 
     public function __construct()
     {
-        $class = '\houdunwang\database\build\\'.ucfirst(
-                Config::get('database.driver')
-            );
+        $class = '\houdunwang\database\build\\'.ucfirst(Config::get('database.driver'));
 
         $this->driver = new $class();
     }
