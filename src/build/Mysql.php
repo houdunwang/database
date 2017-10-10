@@ -42,7 +42,7 @@ class Mysql
             $f ['null']            = $res ['Null'];
             $f ['field']           = $res ['Field'];
             $f ['key']             = ($res ['Key'] == "PRI" && $res['Extra'])
-                || $res ['Key'] == "PRI";
+                                     || $res ['Key'] == "PRI";
             $f ['default']         = $res ['Default'];
             $f ['extra']           = $res ['Extra'];
             $data [$res ['Field']] = $f;
@@ -98,8 +98,7 @@ class Mysql
     {
         if ($this->fieldExists($field, $table)) {
             return Db::execute(
-                "ALTER TABLE ".Config::get('database.prefix').$table
-                .' DROP COLUMN '.$field
+                "ALTER TABLE ".Config::get('database.prefix').$table.' DROP COLUMN '.$field
             );
         }
 
@@ -232,15 +231,14 @@ class Mysql
             $arr['table'][$t['Name']]['rows']      = $t['Rows'];
             $arr['table'][$t['Name']]['collation'] = $t['Collation'];
             $charset
-                                                   =
-            $arr['table'][$t['Name']]['collation'] = $t['Collation'];
+                                                   = $arr['table'][$t['Name']]['collation'] = $t['Collation'];
             $charset                               = explode("_", $charset);
             $arr['table'][$t['Name']]['charset']   = $charset[0];
             $arr['table'][$t['Name']]['dataFree']  = $t['Data_free'];//碎片大小
             $arr['table'][$t['Name']]['indexSize'] = $t['Index_length'];//索引大小
             $arr['table'][$t['Name']]['dataSize']  = $t['Data_length'];//数据大小
             $arr['table'][$t['Name']]['totalSize'] = $t['Data_free']
-                + $t['Data_length'] + $t['Index_length'];
+                                                     + $t['Data_length'] + $t['Index_length'];
         }
 
         return $arr;
@@ -280,10 +278,12 @@ class Mysql
      */
     public function fieldExists($field, $table)
     {
-        $fieldLists = Db::query("DESC ".Config::get('database.prefix').$table);
-        foreach ((array)$fieldLists as $f) {
-            if (strtolower($f['Field']) == strtolower($field)) {
-                return true;
+        if ($this->tableExists($table)) {
+            $fieldLists = Db::query("DESC ".Config::get('database.prefix').$table);
+            foreach ((array)$fieldLists as $f) {
+                if (strtolower($f['Field']) == strtolower($field)) {
+                    return true;
+                }
             }
         }
 

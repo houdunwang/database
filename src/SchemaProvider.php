@@ -28,11 +28,8 @@ class SchemaProvider extends Provider
 
     public function register()
     {
-        $this->app->single(
-            'Schema',
-            function () {
-                return new Schema();
-            }
-        );
+        $this->app->single('Schema', function () {
+            return new Schema();
+        });
     }
 }

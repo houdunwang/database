@@ -25,6 +25,9 @@ class Blueprint
     //字段结构语句
     protected $instruction = [];
 
+    //新增表时索引数据
+    protected $index = [];
+
     //不加前缀的表
     protected $noPreTable;
 
@@ -34,36 +37,18 @@ class Blueprint
     //添加或修改的字段
     protected $field;
 
-    //表注释
-    protected $tableComment = '';
+    //操作类型create新增表alert修改表
+    protected $type;
 
-    public function __construct($table, $comment = '')
+    //表注释
+    protected $tableComment;
+
+    public function __construct($table, $type = '', $comment = '')
     {
         $this->noPreTable   = $table;
         $this->table        = Config::get('database.prefix').$table;
+        $this->type         = $type;
         $this->tableComment = $comment;
-    }
-
-    /**
-     * 添加索引
-     *
-     * @param $field 字段
-     */
-    public function index($field)
-    {
-        $sql = "ALTER TABLE `{$this->table}` ADD INDEX {$field} ( `{$field}` )";
-        Db::execute($sql);
-    }
-
-    /**
-     * 添加唯一索引
-     *
-     * @param $field 字段
-     */
-    public function unique($field)
-    {
-        $sql = "ALTER TABLE `{$this->table}` ADD UNIQUE ( `{$field}` )";
-        Db::execute($sql);
     }
 
     //新建表
@@ -86,8 +71,11 @@ class Blueprint
             }
             $instruction[] = $n['sql'];
         }
-        $sql .= implode(',', $instruction)
-            .") CHARSET UTF8  COMMENT='{$this->tableComment}'";
+        $sql .= implode(',', $instruction);
+        if ( ! empty($this->index)) {
+            $sql .= ','.implode(',', $this->index);
+        }
+        $sql .= ") ENGINE=InnoDB DEFAULT CHARSET UTF8 COMMENT='{$this->tableComment}'";
 
         return Db::execute($sql);
     }
@@ -140,6 +128,87 @@ class Blueprint
         }
     }
 
+    //当前更改的字段的序号
+    protected function currentFieldKey()
+    {
+        return count($this->instruction) - 1;
+    }
+
+    /**
+     * 格式化索引数据
+     *
+     * @param string|array $field 字段列表
+     * @param string       $type  index普通索引unique唯一索引
+     *
+     * @return string
+     */
+    protected function formatIndexData($field, $type = 'KEY')
+    {
+        $field = is_array($field) ? $field : [$field];
+        $name  = implode('_', $field);
+        $field = implode('`,`', $field);
+
+        return " {$type} `{$name}` (`{$field}`) ";
+    }
+
+    /**
+     * 添加索引
+     *
+     * @param string|array $field
+     */
+    public function index($field = [])
+    {
+        $field = empty($field) ? $this->instruction[$this->currentFieldKey()]['field'] : $field;
+        switch ($this->type) {
+            case 'create':
+                $this->index[] = $this->formatIndexData($field);
+                break;
+            case "alert":
+                $sql = "ALTER TABLE `{$this->table}` ADD ".$this->formatIndexData($field);
+                Db::execute($sql);
+                break;
+        }
+    }
+
+    /**
+     * 添加唯一索引
+     *
+     * @param $field 字段
+     */
+    public function unique($field)
+    {
+        $field = empty($field) ? $this->instruction[$this->currentFieldKey()]['field'] : $field;
+        switch ($this->type) {
+            case 'create':
+                $this->index[] = $this->formatIndexData($field);
+                break;
+            case "alert":
+                $sql = "ALTER TABLE `{$this->table}` ADD ".$this->formatIndexData($field, 'UNIQUE');;
+                Db::execute($sql);
+                break;
+        }
+    }
+
+    /**
+     * 删除主键
+     */
+    public function dropPrimary()
+    {
+        $sql = "ALERT TABLE `{$this->table}` DROP PRIMARY KEY ";
+        Db::execute($sql);
+    }
+
+    /**
+     * 删除普通索引
+     *
+     * @param $name
+     */
+    public function dropIndex($name)
+    {
+        $sql = "ALTER TABLE `{$this->table}` DROP INDEX  {$name}";
+        Db::execute($sql);
+    }
+
     public function increments($field)
     {
         $this->field         = $field;
@@ -178,7 +247,7 @@ class Blueprint
     {
         $this->field                = $field;
         $this->instruction[]['sql'] = $field." enum('".implode("','", $data)
-            ."') ";
+                                      ."') ";
 
         return $this;
     }
