@@ -50,7 +50,7 @@ class Base
         if (Schema::tableExists($table)) {
             return true;
         }
-        $Blueprint = new Blueprint($table, 'create', $comment);
+        $Blueprint = new Blueprint($table, $comment);
         $callback($Blueprint);
 
         return $Blueprint->create();

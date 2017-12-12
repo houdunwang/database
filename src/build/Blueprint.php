@@ -22,103 +22,74 @@ use houdunwang\db\Db;
  */
 class Blueprint
 {
-    //字段结构语句
-    protected $instruction = [];
-
-    //新增表时索引数据
-    protected $index = [];
-
+    use Field;
     //不加前缀的表
     protected $noPreTable;
-
     //数据表
     protected $table;
-
-    //添加或修改的字段
-    protected $field;
-
-    //操作类型create新增表alert修改表
-    protected $type;
-
     //表注释
     protected $tableComment;
 
-    public function __construct($table, $type = '', $comment = '')
+    public function __construct($table, $tableComment = '')
     {
         $this->noPreTable   = $table;
         $this->table        = Config::get('database.prefix').$table;
-        $this->type         = $type;
-        $this->tableComment = $comment;
+        $this->tableComment = $tableComment;
     }
 
-    //新建表
+    /**
+     * 新建表
+     *
+     * @return bool
+     */
     public function create()
     {
         $sql         = "CREATE TABLE ".$this->table.'(';
         $instruction = [];
-        foreach ($this->instruction as $n) {
-            if (isset($n['unsigned'])) {
+        foreach ($this->fields as $n) {
+            if ( ! empty($n['unsigned'])) {
                 $n['sql'] .= " unsigned ";
             }
-            if ( ! isset($n['null'])) {
+            if (empty($n['null'])) {
                 $n['sql'] .= ' NOT NULL';
             }
-            if (isset($n['default'])) {
+            if ( ! empty($n['default'])) {
                 $n['sql'] .= " DEFAULT ".$n['default'];
             }
-            if (isset($n['comment'])) {
+            if ( ! empty($n['comment'])) {
                 $n['sql'] .= " COMMENT '{$n['comment']}'";
             }
             $instruction[] = $n['sql'];
         }
         $sql .= implode(',', $instruction);
-        if ( ! empty($this->index)) {
-            $sql .= ','.implode(',', $this->index);
-        }
         $sql .= ") ENGINE=InnoDB DEFAULT CHARSET UTF8 COMMENT='{$this->tableComment}'";
 
-        return Db::execute($sql);
+        $status = Db::execute($sql);
+        $this->createIndex();
+
+        return $status;
     }
 
-    //修改字段
+    /**
+     * 修改字段
+     *
+     * @return bool
+     */
     public function change()
     {
         $sql = 'ALTER TABLE '.$this->table." MODIFY ";
-        foreach ($this->instruction as $n) {
-            if (isset($n['unsigned'])) {
-                $n['sql'] .= " unsigned ";
-            }
-            if ( ! isset($n['null'])) {
-                $n['sql'] .= ' NOT NULL';
-            }
-            if (isset($n['default'])) {
-                $n['sql'] .= " DEFAULT ".$n['default'];
-            }
-            if (isset($n['comment'])) {
-                $n['sql'] .= " COMMENT '{$n['comment']}'";
-            }
-            $s = $sql.$n['sql'];
-
-            return Db::execute($s);
-        }
-    }
-
-    //添加字段
-    public function add()
-    {
-        $sql = 'ALTER TABLE '.$this->table." ADD ";
-        foreach ($this->instruction as $n) {
-            if ( ! Schema::fieldExists($n['field'], $this->noPreTable)) {
-                if (isset($n['unsigned'])) {
+        foreach ($this->fields as $n) {
+            if (Schema::fieldExists($n['field'], $this->noPreTable)) {
+                if ( ! empty($n['unsigned'])) {
                     $n['sql'] .= " unsigned ";
                 }
-                if ( ! isset($n['null'])) {
-                    $n['sql'] .= ' NOT NULL';
+                if (empty($n['null'])) {
+                    $n['sql'] .= ' NULL';
                 }
-                if (isset($n['default'])) {
+                if ( ! empty($n['default'])) {
                     $n['sql'] .= " DEFAULT ".$n['default'];
                 }
-                if (isset($n['comment'])) {
+                if ( ! empty($n['comment'])) {
                     $n['sql'] .= " COMMENT '{$n['comment']}'";
                 }
                 $s = $sql.$n['sql'];
@@ -128,292 +99,51 @@ class Blueprint
         }
     }
 
-    //当前更改的字段的序号
-    protected function currentFieldKey()
-    {
-        return count($this->instruction) - 1;
-    }
-
     /**
-     * 格式化索引数据
+     * 添加字段
      *
-     * @param string|array $field 字段列表
-     * @param string       $type  index普通索引unique唯一索引
-     *
-     * @return string
+     * @return bool
      */
-    protected function formatIndexData($field, $type = 'KEY')
+    public function add()
     {
-        $field = is_array($field) ? $field : [$field];
-        $name  = implode('_', $field);
-        $field = implode('`,`', $field);
+        $sql = 'ALTER TABLE '.$this->table." ADD ";
+        foreach ($this->fields as $n) {
+            if ( ! Schema::fieldExists($n['field'], $this->noPreTable)) {
+                if ( ! empty($n['unsigned'])) {
+                    $n['sql'] .= " unsigned ";
+                }
+                if (empty($n['null'])) {
+                    $n['sql'] .= ' NOT NULL';
+                }
+                if ( ! empty($n['default'])) {
+                    $n['sql'] .= " DEFAULT ".$n['default'];
+                }
+                if ( ! empty($n['comment'])) {
+                    $n['sql'] .= " COMMENT '{$n['comment']}'";
+                }
+                $s = $sql.$n['sql'];
 
-        return " {$type} `{$name}` (`{$field}`) ";
-    }
-
-    /**
-     * 添加索引
-     *
-     * @param string|array $field
-     */
-    public function index($field = [])
-    {
-        $field = empty($field) ? $this->instruction[$this->currentFieldKey()]['field'] : $field;
-        switch ($this->type) {
-            case 'create':
-                $this->index[] = $this->formatIndexData($field);
-                break;
-            case "alert":
-                $sql = "ALTER TABLE `{$this->table}` ADD ".$this->formatIndexData($field);
-                Db::execute($sql);
-                break;
+                return Db::execute($s);
+            }
         }
     }
 
     /**
-     * 添加唯一索引
+     * 生成索引
      *
-     * @param $field 字段
+     * @return bool
      */
-    public function unique($field)
+    protected function createIndex()
     {
-        $field = empty($field) ? $this->instruction[$this->currentFieldKey()]['field'] : $field;
-        switch ($this->type) {
-            case 'create':
-                $this->index[] = $this->formatIndexData($field);
-                break;
-            case "alert":
-                $sql = "ALTER TABLE `{$this->table}` ADD ".$this->formatIndexData($field, 'UNIQUE');;
-                Db::execute($sql);
-                break;
+        foreach ($this->fields as $field) {
+            if ( ! empty($field['index'])) {
+                Schema::addIndex($this->noPreTable, $field['index']);
+            }
+            if ( ! empty($field['unique'])) {
+                Schema::addUnique($this->noPreTable, $field['index']);
+            }
         }
-    }
 
-    /**
-     * 删除主键
-     */
-    public function dropPrimary()
-    {
-        $sql = "ALERT TABLE `{$this->table}` DROP PRIMARY KEY ";
-        Db::execute($sql);
-    }
-
-    /**
-     * 删除普通索引
-     *
-     * @param $name
-     */
-    public function dropIndex($name)
-    {
-        $sql = "ALTER TABLE `{$this->table}` DROP INDEX  {$name}";
-        Db::execute($sql);
-    }
-
-    public function increments($field)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." INT PRIMARY KEY AUTO_INCREMENT ",
-        ];
-
-        return $this;
-    }
-
-    public function timestamps()
-    {
-        $this->instruction[] = [
-            'field' => 'created_at',
-            'sql'   => " created_at datetime COMMENT '创建时间' ",
-        ];
-        $this->instruction[] = [
-            'field' => 'updated_at',
-            'sql'   => " updated_at datetime COMMENT '更新时间'",
-        ];
-    }
-
-    public function tinyInteger($field)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." TINYINT ",
-        ];
-
-        return $this;
-    }
-
-    public function enum($field, $data)
-    {
-        $this->field                = $field;
-        $this->instruction[]['sql'] = $field." enum('".implode("','", $data)
-                                      ."') ";
-
-        return $this;
-    }
-
-    public function integer($field)
-    {
-        $this->field                = $field;
-        $this->instruction[]['sql'] = $field." INT ";
-
-        return $this;
-    }
-
-    public function datetime($field)
-    {
-        $this->field                = $field;
-        $this->instruction[]['sql'] = $field." DATETIME ";
-
-        return $this;
-    }
-
-    public function date($field)
-    {
-        $this->field                = $field;
-        $this->instruction[]['sql'] = $field." DATE ";
-
-        return $this;
-    }
-
-    public function smallint($field)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." SMALLINT ",
-        ];
-
-        return $this;
-    }
-
-    public function mediumint($field)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." MEDIUMINT ",
-        ];
-
-        return $this;
-    }
-
-    public function decimal($field, $len, $de)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." decimal($len,$de) ",
-        ];
-
-        return $this;
-    }
-
-    public function float($field, $len, $de)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." float($len,$de) ",
-        ];
-
-        return $this;
-    }
-
-    public function double($field, $len, $de)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." double($len,$de) ",
-        ];
-
-        return $this;
-    }
-
-    public function char($field, $len = 255)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." char($len) ",
-        ];
-
-        return $this;
-    }
-
-    public function string($field, $len = 255)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." VARCHAR($len) ",
-        ];
-
-        return $this;
-    }
-
-    public function text($field)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." TEXT ",
-        ];
-
-        return $this;
-    }
-
-    public function mediumtext($field)
-    {
-        $this->field         = $field;
-        $this->instruction[] = [
-            'field' => $field,
-            'sql'   => $field." MEDIUMTEXT ",
-        ];
-
-        return $this;
-    }
-
-    public function nullAble()
-    {
-        $this->instruction[count($this->instruction) - 1]['null'] = true;
-
-        return $this;
-    }
-
-    public function defaults($value)
-    {
-        $this->instruction[count($this->instruction) - 1]['default']
-            = is_string($value) ? "'$value'" : $value;
-
-        return $this;
-    }
-
-    public function comment($value)
-    {
-        $this->instruction[count($this->instruction) - 1]['comment'] = $value;
-
-        return $this;
-    }
-
-    public function unsigned()
-    {
-        $this->instruction[count($this->instruction) - 1]['unsigned'] = true;
-
-        return $this;
-    }
-
-    /**
-     * 删除字段
-     *
-     * @param $field
-     */
-    public function dropField($field)
-    {
-        if (Schema::fieldExists($field, $this->noPreTable)) {
-            $sql = "ALTER TABLE ".$this->table." DROP ".$field;
-            Db::execute($sql);
-        }
+        return true;
     }
 }

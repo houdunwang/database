@@ -69,6 +69,83 @@ class Mysql
     }
 
     /**
+     * 添加索引
+     *
+     * @param string       $table 数据表
+     * @param string|array $field 字段列表
+     */
+    public function addIndex($table, $field = [])
+    {
+        $table = Config::get('database.prefix').$table;
+        $field = is_array($field) ? $field : [$field];
+        $name  = implode('_', $field);
+        $field = implode('`,`', $field);
+        $sql   = "ALTER TABLE `{$table}` ADD "." INDEX `{$name}` (`{$field}`) ";
+
+        return Db::execute($sql);
+    }
+
+    /**
+     * 添加索引
+     *
+     * @param string       $table 数据表
+     * @param string|array $field 字段列表
+     *
+     * @retrn bool
+     */
+    public function addUnique($table, $field)
+    {
+        $table = Config::get('database.prefix').$table;
+        $sql   = "ALTER TABLE `{$table}` ADD "." {UNIQUE} (`{$field}`) ";
+
+        return Db::execute($sql);
+    }
+
+    /**
+     * 删除普通索引
+     *
+     * @param string $table 表名
+     * @param string $name  索引名
+     *
+     * @retrn bool
+     */
+    public function dropIndex($table, $name)
+    {
+        $sql = "ALTER TABLE `{$table}` DROP INDEX  {$name}";
+
+        return Db::execute($sql);
+    }
+
+    /**
+     * 添加表主键
+     *
+     * @param string $table 表名
+     * @param string $name  字段
+     *
+     * @return bool
+     */
+    public function addPrimary($table, $name)
+    {
+        $sql = "ALTER TABLE `{$table}` ADD PRIMARY KEY ( `$name` )";
+
+        return Db::execute($sql);
+    }
+
+    /**
+     * 删除主键
+     *
+     * @param $table
+     *
+     * @retrn bool
+     */
+    public function dropPrimary($table)
+    {
+        $sql = "ALERT TABLE `{$table}` DROP PRIMARY KEY ";
+
+        return Db::execute($sql);
+    }
+
+    /**
      * 删除表
      *
      * @param $table
