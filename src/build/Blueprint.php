@@ -62,12 +62,13 @@ class Blueprint
             $instruction[] = $n['sql'];
         }
         $sql .= implode(',', $instruction);
+        //索引
+        if ($this->keys) {
+            $sql .= ','.implode(',', $this->keys);
+        }
         $sql .= ") ENGINE=InnoDB DEFAULT CHARSET UTF8 COMMENT='{$this->tableComment}'";
 
-        $status = Db::execute($sql);
-        $this->createIndex();
-
-        return $status;
+        return Db::execute($sql);
     }
 
     /**
