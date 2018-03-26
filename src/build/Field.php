@@ -55,7 +55,7 @@ trait Field
 
     public function defaults($value)
     {
-        $this->fields[$this->current()]['default'] = is_string($value) ? "'$value'" : $value;
+        $this->fields[$this->current()]['default'] = is_numeric($value) ? $value : "'$value'";
 
         return $this;
     }
@@ -78,7 +78,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " INT PRIMARY KEY AUTO_INCREMENT ",
+            'sql'   => $field." INT PRIMARY KEY AUTO_INCREMENT ",
         ];
 
         return $this;
@@ -88,7 +88,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " TINYINT ",
+            'sql'   => $field." TINYINT ",
         ];
 
         return $this;
@@ -98,7 +98,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " enum('" . implode("','", $data) . "') ",
+            'sql'   => $field." enum('".implode("','", $data)."') ",
         ];
 
         return $this;
@@ -106,14 +106,14 @@ trait Field
 
     public function integer($field)
     {
-        $this->fields[] = ['field' => $field, 'sql' => $field . " INT "];
+        $this->fields[] = ['field' => $field, 'sql' => $field." INT "];
 
         return $this;
     }
 
     public function datetime($field)
     {
-        $this->fields[] = ['field' => $field, 'sql' => $field . " DATETIME "];
+        $this->fields[] = ['field' => $field, 'sql' => $field." DATETIME "];
 
         return $this;
     }
@@ -132,7 +132,7 @@ trait Field
 
     public function date($field)
     {
-        $this->fields[] = ['field' => $field, 'sql' => $field . " DATE "];
+        $this->fields[] = ['field' => $field, 'sql' => $field." DATE "];
 
         return $this;
     }
@@ -141,7 +141,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " SMALLINT ",
+            'sql'   => $field." SMALLINT ",
         ];
 
         return $this;
@@ -151,7 +151,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " MEDIUMINT ",
+            'sql'   => $field." MEDIUMINT ",
         ];
 
         return $this;
@@ -161,7 +161,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " decimal($len,$de) ",
+            'sql'   => $field." decimal($len,$de) ",
         ];
 
         return $this;
@@ -171,7 +171,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " float($len,$de) ",
+            'sql'   => $field." float($len,$de) ",
         ];
 
         return $this;
@@ -181,7 +181,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " double($len,$de) ",
+            'sql'   => $field." double($len,$de) ",
         ];
 
         return $this;
@@ -211,7 +211,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " TEXT ",
+            'sql'   => $field." TEXT ",
         ];
 
         return $this;
@@ -221,7 +221,7 @@ trait Field
     {
         $this->fields[] = [
             'field' => $field,
-            'sql'   => $field . " MEDIUMTEXT ",
+            'sql'   => $field." MEDIUMTEXT ",
         ];
 
         return $this;

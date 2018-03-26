@@ -53,10 +53,10 @@ class Blueprint
             if (empty($n['null'])) {
                 $n['sql'] .= ' NOT NULL';
             }
-            if ( ! empty($n['default'])) {
+            if (isset($n['default'])) {
                 $n['sql'] .= " DEFAULT ".$n['default'];
             }
-            if ( ! empty($n['comment'])) {
+            if (isset($n['comment'])) {
                 $n['sql'] .= " COMMENT '{$n['comment']}'";
             }
             $instruction[] = $n['sql'];
